@@ -1,0 +1,148 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    <h1>{{ quiz.title }}</h1>
+    <p>Please select only one option for each question.</p>
+    {% if quiz.duration %}
+        <div class="alert alert-info">
+            Time Remaining: <span id="time-remaining">--:--</span>
+        </div>
+    {% endif %}
+    
+    <form id="quiz-form" method="POST" action="{% url 'take_quiz' quiz_id=quiz.id %}">
+        {% csrf_token %}
+        {# Provide the quiz duration and a start timestamp (session) to JS #}
+        {% if quiz.duration %}
+            <input type="hidden" id="quiz-duration" value="{{ quiz.duration }}" />
+            {# start_time_iso is provided in the context by the view; fallback to empty string #}
+            <input type="hidden" id="quiz-start-iso" value="{{ quiz_start_iso|default:'' }}" />
+        {% endif %}
+
+        {% for question in questions %}
+            <div class="card mb-4 question-panel" data-index="{{ forloop.counter0 }}" style="display: none;">
+                <div class="card-header">
+                    <h4>{{ forloop.counter }}. {{ question.text }} 
+                        <span class="badge bg-secondary float-end">{{ question.marks }} Marks</span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% for option in question.options.all %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" 
+                                   name="question_{{ question.id }}" 
+                                   id="option_{{ option.id }}" 
+                                   value="{{ option.id }}">
+                            <label class="form-check-label" for="option_{{ option.id }}">
+                                {{ option.text }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div id="question-progress" class="text-muted">Question <span id="current-num">1</span> of <span id="total-num">{{ questions|length }}</span></div>
+            <div>
+                <button id="next-btn" type="button" class="btn btn-primary btn-lg">Next</button>
+            </div>
+        </div>
+    </form>
+    
+    {% if quiz.duration %}
+    <script>
+        (function(){
+            const duration = parseInt(document.getElementById('quiz-duration').value, 10);
+            let startIso = document.getElementById('quiz-start-iso').value;
+
+            // Parse start time or set to now
+            let startTime = startIso ? new Date(startIso) : new Date();
+
+            // Calculate end time (duration is in minutes)
+            const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+
+            const timeDisplay = document.getElementById('time-remaining');
+            const form = document.getElementById('quiz-form');
+
+            function update() {
+                const now = new Date();
+                let remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                const minutes = Math.floor(remaining / 60).toString().padStart(2, '0');
+                const seconds = (remaining % 60).toString().padStart(2, '0');
+                timeDisplay.textContent = minutes + ':' + seconds;
+
+                if (remaining <= 0) {
+                    // Auto-submit the form when time expires
+                    // Disable submit button to prevent double submits
+                    const submitBtn = document.getElementById('submit-btn');
+                    if (submitBtn) submitBtn.disabled = true;
+                    form.submit();
+                }
+            }
+
+            // Update immediately and then every second
+            update();
+            const timerId = setInterval(update, 1000);
+        })();
+    </script>
+    {% endif %}
+    <script>
+        (function(){
+            const panels = Array.from(document.querySelectorAll('.question-panel'));
+            if (!panels.length) return;
+
+            const total = panels.length;
+            let current = 0;
+
+            const nextBtn = document.getElementById('next-btn');
+            const currentNum = document.getElementById('current-num');
+            const totalNum = document.getElementById('total-num');
+            const form = document.getElementById('quiz-form');
+
+            totalNum.textContent = total;
+
+            function showPanel(index) {
+                panels.forEach((p, i) => {
+                    p.style.display = i === index ? '' : 'none';
+                });
+                currentNum.textContent = index + 1;
+                // If last question, change Next into Submit
+                if (index === total - 1) {
+                    nextBtn.textContent = 'Submit Exam and Get Score';
+                    nextBtn.classList.remove('btn-primary');
+                    nextBtn.classList.add('btn-success');
+                } else {
+                    nextBtn.textContent = 'Next';
+                    nextBtn.classList.remove('btn-success');
+                    nextBtn.classList.add('btn-primary');
+                }
+            }
+
+            function isOptionSelected(panel) {
+                return !!panel.querySelector('input[type="radio"]:checked');
+            }
+
+            nextBtn.addEventListener('click', function(){
+                const panel = panels[current];
+                // require selection before moving on
+                if (!isOptionSelected(panel)) {
+                    alert('Please select an option before continuing.');
+                    return;
+                }
+
+                if (current === total - 1) {
+                    // final: submit form
+                    nextBtn.disabled = true;
+                    form.submit();
+                    return;
+                }
+
+                current += 1;
+                showPanel(current);
+            });
+
+            // Initialize
+            showPanel(0);
+        })();
+    </script>
+{% endblock %}

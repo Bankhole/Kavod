@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="card text-center">
+        <div class="card-header bg-primary text-white">
+            <h2>Exam Results for "{{ result.quiz.title }}"</h2>
+        </div>
+        <div class="card-body">
+            <p class="card-text">User: **{{ result.user.username }}**</p>
+            <p class="card-text">Date Taken: {{ result.date_taken|date:"F d, Y P" }}</p>
+            
+            <h1 class="display-3 text-success">
+                Your Final Score: **{{ result.score }}**
+            </h1>
+            
+            <hr>
+            
+            <a href="{% url 'quiz_list' %}" class="btn btn-primary mt-3">Take Another Exam</a>
+        </div>
+    </div>
+
+    <h3 class="mt-5">Detailed Review ({{ user_answers|length }} Questions)</h3>
+    <ul class="list-group">
+        {% for user_answer in user_answers %}
+            <li class="list-group-item {% if user_answer.is_correct %}list-group-item-success{% else %}list-group-item-danger{% endif %}">
+                <strong>Q{{ forloop.counter }}:</strong> {{ user_answer.question.text }} 
+                <span class="badge bg-light text-dark float-end">
+                    Marks: {{ user_answer.question.marks }}
+                </span>
+                <br>
+                **Your Answer:** {{ user_answer.selected_option.text|default:"(No Answer)" }}
+                {% if not user_answer.is_correct %}
+                    <br>
+                    {% for option in user_answer.question.options.all %}
+                        {% if option.is_correct %}
+                            **Correct Answer:** {{ option.text }}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

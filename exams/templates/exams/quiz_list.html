@@ -1,0 +1,23 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    <h1>{{ page_title }}</h1>
+    <p>Please select an exam to begin.</p>
+    <hr>
+
+    {% if quizzes %}
+        <div class="list-group">
+            {% for quiz in quizzes %}
+                <a href="{% url 'take_quiz' quiz_id=quiz.id %}" class="list-group-item list-group-item-action">
+                    <h5 class="mb-1">{{ quiz.title }}</h5>
+                    <small>Marks per question: {{ quiz.questions.first.marks|default:"1" }}</small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No exams are currently available.
+        </div>
+    {% endif %}
+
+{% endblock %}
