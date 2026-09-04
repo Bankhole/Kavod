@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+
+{% block title %}{% if sheet %}Edit Result Sheet{% else %}Upload Result Sheet{% endif %} | Nexus one Academy{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+{% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<form id="result-sheet-form" method="post" enctype="multipart/form-data" class="bg-gray-100 py-4 px-2 rounded-xl">
+  {% csrf_token %}
+  <input type="hidden" name="attendance_payload" id="attendance-payload" value="[]">
+  <input type="hidden" name="subjects_payload" id="subjects-payload" value="[]">
+
+  <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden print:shadow-none">
+    <div class="bg-blue-600 text-white p-6 text-center">
+      <h1 class="text-2xl font-bold uppercase tracking-wide">Nexus one Academy</h1>
+      <p class="text-sm opacity-90">Manual Result Upload Panel</p>
+      <h2 class="mt-4 text-xl font-semibold bg-blue-700 py-1 px-4 inline-block rounded-md">Student Result and Attendance Register</h2>
+      {% if sheet %}
+        <p class="text-xs opacity-90 mt-2">Editing Sheet #{{ sheet.id }}</p>
+      {% endif %}
+    </div>
+
+    <div class="p-6 border-b border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm print:hidden">
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Student</label>
+        <select id="student-id" name="student_id" required class="w-full border border-gray-300 rounded p-2">
+          <option value="">Select student</option>
+          {% for student in students %}
+            <option value="{{ student.id }}" data-name="{{ student.get_full_name|default:student.username }}" {% if initial.student_id == student.id %}selected{% endif %}>{{ student.get_full_name|default:student.username }} ({{ student.username }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Admission Number</label>
+        <input type="text" name="admission_number" id="admission-number" required class="w-full border border-gray-300 rounded p-2" placeholder="e.g. STU/2026/045" value="{{ initial.admission_number }}">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Class</label>
+        <input type="text" name="class_name" id="class-name" required class="w-full border border-gray-300 rounded p-2" placeholder="e.g. Grade 10 Science" value="{{ initial.class_name }}">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Term</label>
+        <input type="text" name="term" id="term" required class="w-full border border-gray-300 rounded p-2" placeholder="e.g. Second Term" value="{{ initial.term }}">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Session</label>
+        <input type="text" name="session_name" id="session-name" required class="w-full border border-gray-300 rounded p-2" placeholder="e.g. 2025/2026" value="{{ initial.session_name }}">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Principal Sign Date</label>
+        <input type="date" name="principal_sign_date" id="principal-sign-date" class="w-full border border-gray-300 rounded p-2" value="{{ initial.principal_sign_date }}">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Student Passport Photo</label>
+        <input type="file" name="student_photo" accept="image/*" class="w-full border border-gray-300 rounded p-2 bg-white">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Class Teacher Signature</label>
+        <input type="file" name="teacher_signature" accept="image/*" class="w-full border border-gray-300 rounded p-2 bg-white">
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Principal Signature</label>
+        <input type="file" name="principal_signature" accept="image/*" class="w-full border border-gray-300 rounded p-2 bg-white">
+      </div>
+    </div>
+
+    <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
+      <div class="space-y-1 w-full md:w-3/4">
+        <p><span class="font-semibold text-gray-600">Student Name:</span> <span id="summary-student">-</span></p>
+        <p><span class="font-semibold text-gray-600">Admission Number:</span> <span id="summary-admission">-</span></p>
+        <p><span class="font-semibold text-gray-600">Class:</span> <span id="summary-class">-</span></p>
+        <p><span class="font-semibold text-gray-600">Term:</span> <span id="summary-term">-</span> (<span id="summary-session">-</span>)</p>
+        <p><span class="font-semibold text-gray-600">Attendance Summary:</span>
+          <span id="summary-present" class="font-bold text-green-600">0</span> /
+          <span id="summary-total" class="font-bold">0</span> Days
+          (<span id="summary-percent" class="font-bold text-blue-600">0%</span>)
+        </p>
+      </div>
+    </div>
+
+    <div class="p-6 bg-blue-50 border-b border-gray-200 print:hidden">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Record Daily Attendance</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">Date</label>
+          <input type="date" id="att-date" class="w-full border border-gray-300 rounded p-2">
+        </div>
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">Status</label>
+          <select id="att-status" class="w-full border border-gray-300 rounded p-2">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+            <option value="Excused">Excused</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">Remarks</label>
+          <input type="text" id="att-remark" class="w-full border border-gray-300 rounded p-2" placeholder="e.g. Medical leave">
+        </div>
+        <div class="flex items-end">
+          <button type="button" onclick="addAttendanceRecord()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">Record</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 border-b border-gray-200 overflow-x-auto">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Attendance Log</h3>
+      <table id="attendance-table" class="w-full text-left border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700 text-xs uppercase tracking-wider border-b border-gray-200">
+            <th class="py-2 px-3 border border-gray-200">Date</th>
+            <th class="py-2 px-3 border border-gray-200 text-center">Status</th>
+            <th class="py-2 px-3 border border-gray-200">Remarks</th>
+            <th class="py-2 px-3 border border-gray-200 text-center print:hidden">Action</th>
+          </tr>
+        </thead>
+        <tbody id="attendance-tbody" class="text-sm divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <div class="p-6 bg-blue-50 border-b border-gray-200 print:hidden">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Add Subject Scores</h3>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">Subject</label>
+          <input type="text" id="sub-name" class="w-full border border-gray-300 rounded p-2" placeholder="e.g. Mathematics">
+        </div>
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">CA (30%)</label>
+          <input type="number" id="sub-ca" min="0" max="30" step="0.01" class="w-full border border-gray-300 rounded p-2">
+        </div>
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">Exam (70%)</label>
+          <input type="number" id="sub-exam" min="0" max="70" step="0.01" class="w-full border border-gray-300 rounded p-2">
+        </div>
+        <div class="flex items-end">
+          <button type="button" onclick="addSubjectRow()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded">Add Subject</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 overflow-x-auto">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Academic Performance</h3>
+      <table id="result-table" class="w-full text-left border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700 text-xs uppercase tracking-wider border-b border-gray-200">
+            <th class="py-3 px-4 border border-gray-200">Subject</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">CA (30%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Exam (70%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Total (100%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Grade</th>
+            <th class="py-3 px-4 border border-gray-200 text-center print:hidden">Action</th>
+          </tr>
+        </thead>
+        <tbody id="subjects-tbody" class="text-sm divide-y divide-gray-200"></tbody>
+      </table>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-b border-gray-200 flex flex-wrap justify-between text-sm">
+      <div><span class="font-semibold text-gray-600">Total Marks:</span> <span id="calc-total">0</span></div>
+      <div><span class="font-semibold text-gray-600">Average:</span> <span id="calc-average">0</span>%</div>
+      <div><span class="font-semibold text-gray-600">Overall Grade:</span> <span id="calc-grade" class="text-green-600 font-bold">-</span></div>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <p class="font-semibold text-gray-700 mb-1">Class Teacher's Remark:</p>
+        <textarea name="teacher_remark" rows="4" class="w-full border border-gray-300 rounded p-2" placeholder="Enter teacher remark">{{ initial.teacher_remark }}</textarea>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <p class="font-semibold text-gray-700 mb-1">Principal's Remark:</p>
+        <textarea name="principal_remark" rows="4" class="w-full border border-gray-300 rounded p-2" placeholder="Enter principal remark">{{ initial.principal_remark }}</textarea>
+      </div>
+    </div>
+
+    <div class="p-6 bg-gray-100 text-center space-x-2 print:hidden">
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg shadow">{% if sheet %}Update{% else %}Save{% endif %}</button>
+      <button type="button" onclick="window.print()" class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-2 px-6 rounded-lg shadow">Preview</button>
+      <button type="button" onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg shadow">Download</button>
+    </div>
+  </div>
+</form>
+
+<script>
+  const attendanceRecords = JSON.parse('{{ attendance_initial_json|escapejs }}');
+  const subjectRecords = JSON.parse('{{ subjects_initial_json|escapejs }}');
+
+  document.getElementById('att-date').valueAsDate = new Date();
+
+  const studentSelect = document.getElementById('student-id');
+  const admissionInput = document.getElementById('admission-number');
+  const classInput = document.getElementById('class-name');
+  const termInput = document.getElementById('term');
+  const sessionInput = document.getElementById('session-name');
+
+  function scoreToGrade(score) {
+    if (score >= 75) return 'A';
+    if (score >= 65) return 'B';
+    if (score >= 50) return 'C';
+    if (score >= 45) return 'D';
+    if (score >= 40) return 'E';
+    return 'F';
+  }
+
+  function syncSummary() {
+    const selected = studentSelect.options[studentSelect.selectedIndex];
+    document.getElementById('summary-student').textContent = selected ? (selected.dataset.name || '-') : '-';
+    document.getElementById('summary-admission').textContent = admissionInput.value || '-';
+    document.getElementById('summary-class').textContent = classInput.value || '-';
+    document.getElementById('summary-term').textContent = termInput.value || '-';
+    document.getElementById('summary-session').textContent = sessionInput.value || '-';
+  }
+
+  studentSelect.addEventListener('change', syncSummary);
+  admissionInput.addEventListener('input', syncSummary);
+  classInput.addEventListener('input', syncSummary);
+  termInput.addEventListener('input', syncSummary);
+  sessionInput.addEventListener('input', syncSummary);
+
+  function addAttendanceRecord() {
+    const date = document.getElementById('att-date').value;
+    const status = document.getElementById('att-status').value;
+    const remark = document.getElementById('att-remark').value || 'N/A';
+
+    if (!date) {
+      return;
+    }
+
+    attendanceRecords.push({ date, status, remark });
+    document.getElementById('att-remark').value = '';
+    renderAttendance();
+  }
+
+  function removeAttendance(index) {
+    attendanceRecords.splice(index, 1);
+    renderAttendance();
+  }
+
+  function renderAttendance() {
+    const tbody = document.getElementById('attendance-tbody');
+    tbody.innerHTML = '';
+
+    attendanceRecords.forEach((item, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="py-2 px-3 border border-gray-200">${item.date}</td>
+        <td class="py-2 px-3 border border-gray-200 text-center">${item.status}</td>
+        <td class="py-2 px-3 border border-gray-200 text-gray-600">${item.remark}</td>
+        <td class="py-2 px-3 border border-gray-200 text-center print:hidden">
+          <button type="button" onclick="removeAttendance(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const totalDays = attendanceRecords.length;
+    const presentDays = attendanceRecords.filter(x => x.status === 'Present' || x.status === 'Late').length;
+    const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
+
+    document.getElementById('summary-present').textContent = presentDays;
+    document.getElementById('summary-total').textContent = totalDays;
+    document.getElementById('summary-percent').textContent = percentage + '%';
+
+    document.getElementById('attendance-payload').value = JSON.stringify(attendanceRecords);
+  }
+
+  function addSubjectRow() {
+    const subject = document.getElementById('sub-name').value.trim();
+    const ca = parseFloat(document.getElementById('sub-ca').value || '0');
+    const exam = parseFloat(document.getElementById('sub-exam').value || '0');
+
+    if (!subject) {
+      return;
+    }
+
+    subjectRecords.push({ subject, ca, exam });
+    document.getElementById('sub-name').value = '';
+    document.getElementById('sub-ca').value = '';
+    document.getElementById('sub-exam').value = '';
+
+    renderSubjects();
+  }
+
+  function removeSubject(index) {
+    subjectRecords.splice(index, 1);
+    renderSubjects();
+  }
+
+  function renderSubjects() {
+    const tbody = document.getElementById('subjects-tbody');
+    tbody.innerHTML = '';
+
+    let total = 0;
+    subjectRecords.forEach((item, index) => {
+      const totalScore = item.ca + item.exam;
+      const grade = scoreToGrade(totalScore);
+      total += totalScore;
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="py-3 px-4 border border-gray-200 font-medium text-gray-800">${item.subject}</td>
+        <td class="py-3 px-4 border border-gray-200 text-center">${item.ca.toFixed(2)}</td>
+        <td class="py-3 px-4 border border-gray-200 text-center">${item.exam.toFixed(2)}</td>
+        <td class="py-3 px-4 border border-gray-200 text-center font-bold">${totalScore.toFixed(2)}</td>
+        <td class="py-3 px-4 border border-gray-200 text-center font-bold text-green-600">${grade}</td>
+        <td class="py-3 px-4 border border-gray-200 text-center print:hidden">
+          <button type="button" onclick="removeSubject(${index})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Delete</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const average = subjectRecords.length ? (total / subjectRecords.length) : 0;
+    document.getElementById('calc-total').textContent = total.toFixed(2);
+    document.getElementById('calc-average').textContent = average.toFixed(2);
+    document.getElementById('calc-grade').textContent = subjectRecords.length ? scoreToGrade(average) : '-';
+
+    document.getElementById('subjects-payload').value = JSON.stringify(subjectRecords);
+  }
+
+  function exportToExcel() {
+    const workbook = XLSX.utils.book_new();
+    const attendanceTable = document.getElementById('attendance-table');
+    const resultTable = document.getElementById('result-table');
+
+    const attendanceSheet = XLSX.utils.table_to_sheet(attendanceTable);
+    const resultSheet = XLSX.utils.table_to_sheet(resultTable);
+
+    XLSX.utils.book_append_sheet(workbook, attendanceSheet, 'Attendance_Log');
+    XLSX.utils.book_append_sheet(workbook, resultSheet, 'Academic_Performance');
+    XLSX.writeFile(workbook, 'Student_Result_Attendance.xlsx');
+  }
+
+  renderAttendance();
+  renderSubjects();
+  syncSummary();
+</script>
+{% endblock %}

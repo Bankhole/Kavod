@@ -1,0 +1,70 @@
+﻿{% load static %}
+{% if request.user.is_authenticated %}
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top site-navbar">
+    <div class="container">
+      <a class="navbar-brand fw-bold d-flex align-items-center" href="{% url 'home' %}">
+        <img src="/static/images/logo.png" width="40" height="40" alt="Logo">
+        Nexus One Academy
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.view_name == 'accounts:dashboard_redirect' %}active{% endif %}" href="{% url 'accounts:dashboard_redirect' %}">My Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'admissions' %}active{% endif %}" href="{% url 'admissions:admission_apply' %}">Admissions</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.resolver_match %}{% if request.resolver_match.url_name == 'academics' or request.resolver_match.namespace == 'learning' %}active{% endif %}{% endif %}" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Academics
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
+              <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.url_name == 'academics' %}active{% endif %}" href="{% url 'academics' %}">Overview</a></li>
+              {% if user_group != 'Parent' %}
+                <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.namespace == 'learning' %}active{% endif %}" href="{% url 'learning:course_list' %}">Learning</a></li>
+                <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.namespace == 'timetable' %}active{% endif %}" href="{% url 'timetable:classroom_list' %}">Timetable</a></li>
+                <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.namespace == 'assignment' %}active{% endif %}" href="{% url 'assignment:list' %}">Assignments</a></li>
+                <li><a class="dropdown-item" href="{% url 'attendance:dashboard' %}">Attendance</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'payments:dashboard' %}">Payments Dashboard</a></li>
+                <li><a class="dropdown-item" href="{% url 'payments:history' %}">Payment History</a></li>
+                <li><a class="dropdown-item" href="{% url 'payments:invoice_payment' %}">Invoice Payment</a></li>
+              {% endif %}
+              {% if can_manage_school_operations %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'payments:manual_invoice_entry' %}">Add Invoice</a></li>
+              {% endif %}
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+
+          <li class="nav-item"><a class="nav-link" href="{% url 'exams:quiz_list' %}">Exams</a></li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.resolver_match and request.resolver_match.namespace == 'birthdaygreetings' %}active{% endif %}" href="#" id="portalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Portal
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="portalDropdown">
+              <li><a class="dropdown-item" href="{% url 'exams:check_results' %}">Check Result</a></li>
+              <li><a class="dropdown-item" href="{% url 'announcements:list' %}">Announcements</a></li>
+              <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.namespace == 'birthdaygreetings' %}active{% endif %}" href="{% url 'birthdaygreetings:today_birthdays' %}">Birthday Greetings</a></li>
+              <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+              {% if can_manage_school_operations %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'exams:manual_result_upload' %}">Upload Results</a></li>
+              {% endif %}
+              {% if request.user.is_staff %}
+                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin Dashboard</a></li>
+              {% endif %}
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+{% endif %}
+

@@ -1,0 +1,23 @@
+/* Emoji quick-insert toolbar for the birthday custom_message admin field */
+.emoji-picker-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 6px 0 10px;
+    max-width: 420px;
+}
+
+.emoji-picker-toolbar button {
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 4px 7px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.emoji-picker-toolbar button:hover {
+    background: #f0f0f0;
+    border-color: #999;
+}

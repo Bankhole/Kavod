@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>School Announcements</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">School Announcements</h1>
+
+        <!-- List Feed -->
+        <div class="space-y-4">
+            {% for announcement in announcements %}
+                <div class="p-6 bg-white rounded-lg shadow border-l-4 {% if announcement.is_important %}border-red-500 bg-red-50{% else %}border-blue-500{% endif %}">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold uppercase px-2 py-1 rounded bg-gray-200 text-gray-700">
+                            {{ announcement.get_target_audience_display }}
+                        </span>
+                        <span class="text-xs text-gray-500">{{ announcement.created_at|date:"M d, Y" }}</span>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-gray-900">
+                        {% if announcement.is_important %}<span class="text-red-600">[Important]</span>{% endif %}
+                        <a href="{% url 'announcements:detail' announcement.slug %}" class="hover:underline">
+                            {{ announcement.title }}
+                        </a>
+                    </h2>
+
+                    <p class="text-gray-600 mt-2">{{ announcement.content|truncatewords:30 }}</p>
+
+                    {% if announcement.attachment %}
+                        <div class="mt-4">
+                            <a href="{{ announcement.attachment.url }}" class="text-sm text-blue-600 hover:underline font-medium" download>
+                                📎 Download Attachment
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-gray-500">No announcements posted at this time.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

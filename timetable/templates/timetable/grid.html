@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Timetable - {{ classroom.name }}</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .slot-cell { height: 60px; }
+    </style>
+</head>
+<body>
+    <h2>Weekly Schedule: {{ classroom.name }}</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Time Slot</th>
+                {% for day_code, day_name in days %}
+                    <th>{{ day_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot, day_data in grid.items %}
+                <tr>
+                    <td><strong>{{ slot.start_time|time:"H:i" }} - {{ slot.end_time|time:"H:i" }}</strong></td>
+                    {% for day_code, day_name in days %}
+                        <td class="slot-cell">
+                            {% with item=day_data|get_item:day_code %}
+                                {% if item %}
+                                    <strong>{{ item.subject.name }}</strong><br>
+                                    <small>{{ item.teacher }}</small>
+                                {% else %}
+                                    <span style="color:#aaa;">—</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

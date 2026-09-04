@@ -1,0 +1,35 @@
+<div class="container my-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-warning text-dark font-weight-bold">
+      🎉 Today's Birthday Celebrants
+    </div>
+    <div class="card-body">
+      {% if celebrants %}
+        <div class="row">
+          {% for profile in celebrants %}
+            <div class="col-md-4 mb-3">
+              <div class="d-flex align-items-center p-3 border rounded">
+                {% if profile.profile_picture %}
+                  <img src="{{ profile.profile_picture.url }}" class="rounded-circle mr-3" width="60" height="60" alt="{{ profile.user.get_full_name }}">
+                {% else %}
+                  <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
+                    {{ profile.user.first_name|first|default:"🎂" }}
+                  </div>
+                {% endif %}
+                <div>
+                  <h6 class="mb-0 font-weight-bold">{{ profile.user.get_full_name|default:profile.user.username }}</h6>
+                  <small class="text-muted">{{ profile.get_role_display }} • {{ profile.grade_or_department }}</small>
+                  {% if profile.custom_message %}
+                    <p class="small text-primary mb-0 mt-1">"{{ profile.custom_message }}"</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No birthdays scheduled for today!</p>
+      {% endif %}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,169 @@
+﻿{% extends 'base.html' %}
+{% block title %}Home | Nexus One Academy{% endblock %}
+{% block content %}
+<style>
+  .hero-banner {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 45%, var(--teal) 80%, var(--amber) 100%);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  }
+  .stat-card {
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: #ffffff;
+  }
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1.5rem;
+    color: #fff;
+  }
+</style>
+
+<div class="container py-4">
+
+  <section class="hero-banner rounded-4 p-5 mb-5 text-white text-center">
+    <h1 class="fw-bold mb-3">Shaping Bright Futures at Nexus One Academy</h1>
+    <p class="lead mb-4 mx-auto" style="max-width: 60ch;">
+      Nurturing academic excellence, strong character, and confident leadership —
+      one student at a time.
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{% url 'admissions:admission_apply' %}" class="btn btn-light btn-lg fw-bold">Apply for Admission</a>
+      <a href="{% url 'academics' %}" class="btn btn-outline-light btn-lg">Explore Academics</a>
+    </div>
+  </section>
+
+  <div class="row g-4 text-center mb-5">
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 h-100">
+        <div class="h3 fw-bold text-primary mb-1">15+</div>
+        <small class="text-muted">Years of Excellence</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 h-100">
+        <div class="h3 fw-bold text-primary mb-1">1,200+</div>
+        <small class="text-muted">Students Enrolled</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 h-100">
+        <div class="h3 fw-bold text-primary mb-1">80+</div>
+        <small class="text-muted">Dedicated Educators</small>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card p-4 h-100">
+        <div class="h3 fw-bold text-primary mb-1">95%</div>
+        <small class="text-muted">Graduation Rate</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="d-flex flex-column align-items-center text-center h-100">
+        <div class="feature-icon mb-3" style="background: var(--blue);"><i class="bi bi-mortarboard-fill"></i></div>
+        <h3 class="h5">Academic Excellence</h3>
+        <p class="text-muted">A challenging curriculum guided by passionate teachers who help every student excel.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="d-flex flex-column align-items-center text-center h-100">
+        <div class="feature-icon mb-3" style="background: var(--teal);"><i class="bi bi-people-fill"></i></div>
+        <h3 class="h5">Holistic Development</h3>
+        <p class="text-muted">Clubs, sports, and mentorship programs that build character alongside academics.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="d-flex flex-column align-items-center text-center h-100">
+        <div class="feature-icon mb-3" style="background: var(--amber);"><i class="bi bi-shield-check"></i></div>
+        <h3 class="h5">Safe & Modern Campus</h3>
+        <p class="text-muted">Secure, well-equipped facilities designed to support learning at every level.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h4 mb-0">School Announcements</h2>
+            <span class="badge bg-primary-subtle text-primary">Latest</span>
+          </div>
+
+          {% if announcements %}
+            {% for announcement in announcements %}
+              <div class="border rounded-3 p-3 mb-3 {% if announcement.is_important %}border-danger bg-danger-subtle{% else %}border-light bg-light{% endif %}">
+                <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                  <span class="badge bg-secondary-subtle text-dark text-uppercase small">
+                    {{ announcement.get_target_audience_display }}
+                  </span>
+                  <small class="text-muted">{{ announcement.created_at|date:"M d, Y" }}</small>
+                </div>
+
+                <h3 class="h5 mb-2">
+                  {% if announcement.is_important %}<span class="text-danger">[Important]</span> {% endif %}
+                  {{ announcement.title }}
+                </h3>
+
+                <p class="text-muted mb-2">{{ announcement.content|truncatewords:35 }}</p>
+
+                {% if announcement.attachment %}
+                  <a href="{{ announcement.attachment.url }}" class="btn btn-sm btn-outline-primary" download>
+                    Download attachment
+                  </a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted mb-0">No announcements posted at this time.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 rounded-4 h-100">
+        <div class="card-header bg-warning text-dark fw-bold">🎂 Birthday Greetings</div>
+        <div class="card-body p-3">
+          {% if todays_celebrants %}
+            {% for profile in todays_celebrants %}
+              <div class="d-flex align-items-center gap-3 border rounded-3 p-2 mb-2">
+                {% if profile.profile_picture %}
+                  <img src="{{ profile.profile_picture.url }}" class="rounded-circle" width="52" height="52" alt="{{ profile.user.get_full_name|default:profile.user.username }}">
+                {% else %}
+                  <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width:52px;height:52px;">
+                    {{ profile.user.first_name|first|default:"*" }}
+                  </div>
+                {% endif %}
+                <div>
+                  <div class="fw-bold">{{ profile.user.get_full_name|default:profile.user.username }}</div>
+                  <small class="text-muted">{{ profile.get_role_display }}</small>
+                  {% if profile.custom_message %}
+                    <div class="small text-primary">"{{ profile.custom_message }}"</div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted mb-0">No birthdays scheduled for today.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="hero-banner rounded-4 p-5 mt-5 text-white text-center">
+    <h2 class="fw-bold mb-2">Ready to Join Our Community?</h2>
+    <a href="{% url 'admissions:admission_apply' %}" class="lead d-inline-block text-white text-decoration-none mb-4">Take the first step toward a brighter future for your child today.</a>
+    <div><a href="{% url 'contact' %}" class="btn btn-light btn-lg fw-bold">Contact Us</a></div>
+  </section>
+
+</div>
+{% endblock %}
+

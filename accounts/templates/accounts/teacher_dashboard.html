@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard | Nexus One Academy{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12">
+    <h2>Teacher Dashboard</h2>
+    <p class="lead">Tools for managing your classes, assignments, and student records.</p>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Assignments</h5>
+        <p class="text-muted">Post assignments and review student submissions.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'assignment:list' %}">Manage Assignments</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Timetable</h5>
+        <p class="text-muted">View classroom schedules for the week.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'timetable:classroom_list' %}">View Timetable</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Attendance</h5>
+        <p class="text-muted">Record and review student attendance.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'attendance:dashboard' %}">Take Attendance</a>
+      </div>
+    </div>
+  </div>
+
+  {% if can_manage_school_operations %}
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100 border-warning">
+        <div class="card-body">
+          <h5 class="card-title">Manual Results</h5>
+          <p class="text-muted">Upload or edit student result sheets.</p>
+          <a class="btn btn-outline-warning btn-sm" href="{% url 'exams:manual_result_upload' %}">Upload Results</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100 border-warning">
+        <div class="card-body">
+          <h5 class="card-title">Invoices</h5>
+          <p class="text-muted">Create and manage student invoices.</p>
+          <a class="btn btn-outline-warning btn-sm" href="{% url 'payments:manual_invoice_entry' %}">Add Invoice</a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Announcements</h5>
+        <p class="text-muted">Read the latest school-wide announcements.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'announcements:list' %}">View Announcements</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

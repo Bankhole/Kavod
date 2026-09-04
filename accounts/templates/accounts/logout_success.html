@@ -1,0 +1,20 @@
+﻿{% extends 'base.html' %}
+{% block title %}Logged Out | Nexus One Academy{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card shadow">
+      <div class="card-body text-center">
+        <div class="mb-3">
+          <i class="bi bi-check-circle" style="font-size: 3rem; color: #28a745;"></i>
+        </div>
+        <h2 class="card-title mb-3">You have been logged out</h2>
+        <p class="card-text text-muted mb-4">You have successfully logged out of your account.</p>
+        
+        <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login Again</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

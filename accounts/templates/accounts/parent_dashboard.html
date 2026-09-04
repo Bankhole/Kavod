@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Parent Dashboard | Nexus One Academy{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-12">
+    <h2>Parent Dashboard</h2>
+    <p class="lead">Stay connected with your child's progress at Nexus One Academy.</p>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Results</h5>
+        <p class="text-muted">Check your child's published exam results.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'exams:check_results' %}">Check Results</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Payments</h5>
+        <p class="text-muted">View invoices and make school fee payments.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'payments:dashboard' %}">Go to Payments</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Announcements</h5>
+        <p class="text-muted">Catch up on the latest school news and events.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'announcements:list' %}">View Announcements</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Birthday Greetings</h5>
+        <p class="text-muted">Celebrate the birthdays of current students and staff.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'birthdaygreetings:today_birthdays' %}">View Birthdays</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

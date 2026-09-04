@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment History | Nexus one Academy{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h2 class="mb-3">Payment History</h2>
+    <p class="text-muted">Your recent payment records will appear here.</p>
+  </div>
+</div>
+
+<!-- Inside payments/history.html inside the table loop -->
+<td>
+    {% if tx.status == 'SUCCESSFUL' %}
+        <span class="badge bg-success">Successful</span>
+        <a href="{% url 'payments:download_receipt' tx.reference %}" 
+           class="btn btn-sm btn-outline-secondary ms-2" 
+           target="_blank">
+           📄 Receipt
+        </a>
+    {% elif tx.status == 'PENDING' %}
+        <span class="badge bg-warning text-dark">Pending</span>
+    {% else %}
+        <span class="badge bg-danger">Failed</span>
+    {% endif %}
+</td>
+{% endblock %}

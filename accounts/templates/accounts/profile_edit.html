@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - Nexus One School{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-user-edit"></i> Edit Your Profile</h4>
+            </div>
+            <div class="card-body p-5">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="alert alert-info">
+                    <strong>Account Role:</strong> <span class="badge bg-primary">{{ request.user.get_role_display }}</span>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>Your Access Code:</strong> <code class="fs-6">{{ profile.access_code }}</code>
+                    <div class="small mt-1">This unique code is issued out by the school administrator for you to log in with. Keep it safe.</div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <fieldset class="mb-4">
+                        <legend class="h5 mb-3"><i class="fas fa-user-circle"></i> User Account Information</legend>
+                        {{ u_form.as_p }}
+                    </fieldset>
+
+                    <fieldset class="mb-4">
+                        <legend class="h5 mb-3"><i class="fas fa-address-card"></i> School Profile Details</legend>
+                        
+                        {% if profile.profile_picture %}
+                            <div class="mb-3">
+                                <label class="form-label">Current Picture:</label>
+                                <div>
+                                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail" width="150">
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {{ p_form.as_p }}
+                    </fieldset>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

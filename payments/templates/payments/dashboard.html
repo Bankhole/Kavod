@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Payments | Nexus one Academy{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <h2 class="mb-3">Payments</h2>
+    <p class="lead">Manage school fee categories, create invoices, and guide student payments with one simple flow.</p>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if can_manage_invoices %}
+      <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+            <div>
+              <h4 class="mb-1">Quick Invoice Entry</h4>
+              <p class="text-muted mb-0">Create or update a per-student invoice in seconds.</p>
+            </div>
+            <a href="{% url 'payments:manual_invoice_entry' %}" class="btn btn-success btn-lg rounded-pill px-4 fw-bold">Add Invoice</a>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0 rounded-4 mb-4">
+      <div class="card-body p-4">
+        <h4 class="mb-3">Your invoice summary</h4>
+        {% if recent_invoices %}
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Session</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for invoice in recent_invoices %}
+                  <tr>
+                    <td>{{ invoice.invoice_number }}</td>
+                    <td>{{ invoice.academic_session }}</td>
+                    <td>₦{{ invoice.total_amount }}</td>
+                    <td><span class="badge bg-primary">{{ invoice.get_status_display }}</span></td>
+                    <td><a href="{% url 'payments:invoice_detail' invoice.invoice_number %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0">You do not have any invoices yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if can_manage_invoices and recent_all_invoices %}
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+          <h4 class="mb-3">Latest school invoices</h4>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Invoice</th>
+                  <th>Amount</th>
+                  <th>Due</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for invoice in recent_all_invoices %}
+                  <tr>
+                    <td>{{ invoice.student.get_full_name|default:invoice.student.username }}</td>
+                    <td>{{ invoice.invoice_number }}</td>
+                    <td>₦{{ invoice.total_amount }}</td>
+                    <td>{{ invoice.due_date|date:'d M Y' }}</td>
+                    <td><a href="{% url 'payments:invoice_detail' invoice.invoice_number %}" class="btn btn-sm btn-outline-secondary">Open</a></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body p-4">
+        <h5 class="card-title">Available payment categories</h5>
+        {% if categories %}
+          <ul class="list-group list-group-flush">
+            {% for category in categories %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{ category.name }}</span>
+                <span class="badge bg-primary">₦{{ category.amount }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted mb-0">No payment categories are available yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

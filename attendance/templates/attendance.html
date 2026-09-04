@@ -1,0 +1,235 @@
+{% extends "base.html" %} <!-- Make sure base.html loads Bootstrap 5 CSS & JS -->
+
+{% block content %}
+<style>
+  /* Custom Extensions */
+  .glass-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  .btn-status-check:checked + label.btn-present {
+    background-color: #198754; color: white; border-color: #198754;
+  }
+  .btn-status-check:checked + label.btn-late {
+    background-color: #ffc107; color: #212529; border-color: #ffc107;
+  }
+  .btn-status-check:checked + label.btn-absent {
+    background-color: #dc3545; color: white; border-color: #dc3545;
+  }
+  .table-hover tbody tr:hover { background-color: rgba(13, 110, 253, 0.02); }
+</style>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Class Attendance</h2>
+      <p class="text-muted small">Manage session, subject, and student presence</p>
+    </div>
+    <span class="badge bg-primary px-3 py-2 fs-6">Teacher: {{ request.user.get_full_name|default:request.user.username }}</span>
+  </div>
+
+  <!-- Filter & Selection Panel -->
+  <div class="card glass-card p-4 mb-4">
+    <form id="attendanceFilterForm" class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Academic Session</label>
+        <select id="sessionSelect" class="form-select" required>
+          <option value="" selected disabled>Choose Session...</option>
+          {% for session in sessions %}
+            <option value="{{ session.id }}" {% if session.is_current %}selected{% endif %}>{{ session.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Subject</label>
+        <select id="subjectSelect" class="form-select" required>
+          <option value="" selected disabled>Choose Subject...</option>
+          {% for subject in subjects %}
+            <option value="{{ subject.id }}">{{ subject.name }} ({{ subject.code }})</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Class</label>
+        <select id="classSelect" class="form-select" required>
+          <option value="" selected disabled>Choose Class...</option>
+          {% for class in classes %}
+            <option value="{{ class.id }}">{{ class.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label fw-semibold">Date</label>
+        <input type="date" id="attendanceDate" class="form-control" value="{% now 'Y-m-d' %}" required />
+      </div>
+    </form>
+  </div>
+
+  <!-- Attendance Marking Table Section -->
+  <div class="card glass-card p-4 d-none" id="attendanceSection">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+      <!-- Quick Actions -->
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-success btn-sm" onclick="markAll('P')">Mark All Present</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="markAll('A')">Mark All Absent</button>
+      </div>
+
+      <!-- Stats Counters -->
+      <div class="d-flex gap-3 text-center">
+        <div><span class="fw-bold text-success" id="countPresent">0</span> <small class="text-muted">Present</small></div>
+        <div><span class="fw-bold text-warning" id="countLate">0</span> <small class="text-muted">Late</small></div>
+        <div><span class="fw-bold text-danger" id="countAbsent">0</span> <small class="text-muted">Absent</small></div>
+      </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" style="width: 15%;">Roll No.</th>
+            <th scope="col">Student Name</th>
+            <th scope="col" class="text-center" style="width: 35%;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="studentListTable">
+          <!-- Dynamically Injected with JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Submit Action -->
+    <div class="mt-4 d-flex justify-content-end">
+      <button type="button" class="btn btn-primary px-4 py-2" id="saveAttendanceBtn" onclick="saveAttendance()">
+        <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        Save Attendance
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript Engine -->
+<script>
+  const classSelect = document.getElementById('classSelect');
+  const attendanceSection = document.getElementById('attendanceSection');
+  const studentListTable = document.getElementById('studentListTable');
+
+  // Load students dynamically when class is selected
+  classSelect.addEventListener('change', function() {
+    const classId = this.value;
+    if (!classId) return;
+
+    fetch(`{% url 'attendance:get_students' %}?class_id=${classId}`)
+      .then(response => response.json())
+      .then(data => {
+        studentListTable.innerHTML = '';
+        if (data.students.length === 0) {
+          studentListTable.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">No students found in this class.</td></tr>`;
+        } else {
+          data.students.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="fw-bold text-secondary">${student.roll_number}</td>
+              <td>${student.first_name} ${student.last_name}</td>
+              <td class="text-center">
+                <div class="btn-group w-100" role="group">
+                  <input type="radio" class="btn-check btn-status-check" name="status_${student.id}" id="p_${student.id}" value="P" checked onchange="updateCounters()">
+                  <label class="btn btn-outline-success btn-sm btn-present" for="p_${student.id}">Present</label>
+
+                  <input type="radio" class="btn-check btn-status-check" name="status_${student.id}" id="l_${student.id}" value="L" onchange="updateCounters()">
+                  <label class="btn btn-outline-warning btn-sm btn-late" for="l_${student.id}">Late</label>
+
+                  <input type="radio" class="btn-check btn-status-check" name="status_${student.id}" id="a_${student.id}" value="A" onchange="updateCounters()">
+                  <label class="btn btn-outline-danger btn-sm btn-absent" for="a_${student.id}">Absent</label>
+                </div>
+              </td>
+            `;
+            studentListTable.appendChild(row);
+          });
+        }
+        attendanceSection.classList.remove('d-none');
+        updateCounters();
+      });
+  });
+
+  // Batch action toggle
+  function markAll(status) {
+    document.querySelectorAll(`.btn-status-check[value="${status}"]`).forEach(radio => {
+      radio.checked = true;
+    });
+    updateCounters();
+  }
+
+  // Update visual aggregate counters
+  function updateCounters() {
+    const present = document.querySelectorAll('.btn-status-check[value="P"]:checked').length;
+    const late = document.querySelectorAll('.btn-status-check[value="L"]:checked').length;
+    const absent = document.querySelectorAll('.btn-status-check[value="A"]:checked').length;
+
+    document.getElementById('countPresent').innerText = present;
+    document.getElementById('countLate').innerText = late;
+    document.getElementById('countAbsent').innerText = absent;
+  }
+
+  // Submit via AJAX Fetch
+  function saveAttendance() {
+    const session_id = document.getElementById('sessionSelect').value;
+    const subject_id = document.getElementById('subjectSelect').value;
+    const class_id = document.getElementById('classSelect').value;
+    const date = document.getElementById('attendanceDate').value;
+
+    if (!session_id || !subject_id || !class_id || !date) {
+      alert('Please fill out all session and subject parameters.');
+      return;
+    }
+
+    const attendance = {};
+    document.querySelectorAll('.btn-status-check:checked').forEach(radio => {
+      const studentId = radio.name.replace('status_', '');
+      attendance[studentId] = radio.value;
+    });
+
+    const payload = {
+      session_id: session_id,
+      subject_id: subject_id,
+      class_id: class_id,
+      date: date,
+      attendance: attendance
+    };
+
+    const btn = document.getElementById('saveAttendanceBtn');
+    const spinner = document.getElementById('btnSpinner');
+    btn.disabled = true;
+    spinner.classList.remove('d-none');
+
+    fetch("{% url 'attendance:save_attendance' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      btn.disabled = false;
+      spinner.classList.add('d-none');
+      if (data.status === 'success') {
+        alert(data.message);
+      } else {
+        alert('Error: ' + data.message);
+      }
+    })
+    .catch(error => {
+      btn.disabled = false;
+      spinner.classList.add('d-none');
+      alert('An error occurred while saving attendance.');
+    });
+  }
+</script>
+{% endblock %}

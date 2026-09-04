@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning | Nexus one Academy{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Learning</h2>
+
+  {% if courses %}
+    <div class="row g-4">
+      {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="{{ course.title }}">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ course.title }}</h5>
+              <p class="card-text text-muted mb-2">
+                {{ course.category.name|default:'General' }}
+              </p>
+              <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No courses are available yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

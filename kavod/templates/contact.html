@@ -1,0 +1,32 @@
+﻿{% extends 'base.html' %}
+{% block title %}Contact | Nexus One Academy{% endblock %}
+{% block content %}
+<style>
+	.contact-hero { background: linear-gradient(135deg, var(--navy), var(--blue), var(--teal)); }
+	.contact-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: var(--blue); }
+</style>
+<div class="container py-4">
+	<section class="contact-hero rounded-4 p-4 p-md-5 text-white mb-5">
+		<h1 class="mb-2">Let's Start a Conversation</h1>
+		<p class="lead mb-0" style="max-width: 45ch;">Our team is ready to help with admissions, school information, and support for our community.</p>
+	</section>
+	<div class="row g-4">
+		<div class="col-lg-7">
+			<h2 class="h3 mb-4">Get in Touch</h2>
+			<div class="d-flex gap-3 mb-4"><div class="contact-icon"><i class="bi bi-envelope-fill"></i></div><div><h3 class="h5 mb-1">Email Us</h3><p class="mb-0"><a href="mailto:info@nexusoneacademy.edu.ng">info@nexusoneacademy.edu.ng</a></p></div></div>
+			<div class="d-flex gap-3 mb-4"><div class="contact-icon" style="background:var(--teal);"><i class="bi bi-telephone-fill"></i></div><div><h3 class="h5 mb-1">Call Us</h3><p class="mb-0"><a href="tel:+2340000000000">+234 000 000 0000</a></p></div></div>
+			<div class="d-flex gap-3"><div class="contact-icon" style="background:var(--amber);"><i class="bi bi-geo-alt-fill"></i></div><div><h3 class="h5 mb-1">Visit the Campus</h3><p class="mb-0 text-muted">Contact the school office to arrange a convenient campus visit.</p></div></div>
+		</div>
+		<div class="col-lg-5">
+			<div class="card shadow-sm border-0 h-100">
+				<div class="card-body p-4">
+					<h2 class="h4">Admissions Enquiries</h2>
+					<p class="text-muted">Planning to enrol your child? Begin your application online and our admissions team will be in touch.</p>
+					<a href="{% url 'admissions:admission_apply' %}" class="btn btn-primary">Start an Application</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+

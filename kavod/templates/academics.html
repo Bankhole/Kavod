@@ -1,0 +1,26 @@
+﻿{% extends 'base.html' %}
+{% block title %}Academics | Nexus One Academy{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <h2>Academics</h2>
+    <p class="lead">Our academic programs are built to help students reach their full potential.</p>
+    <p>Use the links below to access departmental tools and academic records.</p>
+  </div>
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Academic Tools</h5>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{% url 'learning:course_list' %}">Learning</a></li>
+          <li><a href="{% url 'timetable:classroom_list' %}">Timetable</a></li>
+          <li><a href="{% url 'assignment:list' %}">Assignments</a></li>
+          <li><a href="{% url 'attendance:dashboard' %}">Attendance portal</a></li>
+          <li><a href="{% url 'payments:dashboard' %}">Payments portal</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

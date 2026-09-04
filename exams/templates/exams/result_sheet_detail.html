@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Result Sheet | Nexus one Academy{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<div class="bg-gray-100 py-4 px-2 rounded-xl">
+  <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl overflow-hidden print:shadow-none print:rounded-none result-sheet-print">
+    <div class="bg-blue-600 text-white p-6 text-center">
+      <div class="flex items-center justify-center gap-4">
+        <img src="/static/images/logo.png" alt="School logo" class="w-16 h-16 rounded-full border-2 border-white bg-white/10 p-1">
+        <div>
+          <h1 class="text-2xl font-bold uppercase tracking-wide">OAKWOOD ACADEMY</h1>
+          <p class="text-xs uppercase tracking-[0.3em] text-blue-100">Excellence • Integrity • Community</p>
+        </div>
+      </div>
+      <h2 class="mt-4 text-xl font-semibold bg-blue-700 py-1 px-4 inline-block rounded-md">Student Result and Attendance Register</h2>
+    </div>
+
+    <div class="p-6 border-b border-gray-200 flex flex-col md:flex-row justify-between items-start gap-6 text-sm">
+      <div class="space-y-1 w-full md:w-3/4">
+        <p><span class="font-semibold text-gray-600">Student Name:</span> {{ sheet.student.get_full_name|default:sheet.student.username }}</p>
+        <p><span class="font-semibold text-gray-600">Admission Number:</span> {{ sheet.admission_number }}</p>
+        <p><span class="font-semibold text-gray-600">Class:</span> {{ sheet.class_name }}</p>
+        <p><span class="font-semibold text-gray-600">Term:</span> {{ sheet.term }} ({{ sheet.session_name }})</p>
+        <p><span class="font-semibold text-gray-600">Attendance Summary:</span>
+          <span class="font-bold text-green-600">{{ present_days }}</span> /
+          <span class="font-bold">{{ total_days }}</span> Days
+          (<span class="font-bold text-blue-600">{{ attendance_percent }}%</span>)
+        </p>
+      </div>
+
+      <div class="w-full md:w-44 shrink-0">
+        {% if sheet.student_photo %}
+          <img src="{{ sheet.student_photo.url }}" alt="Student passport" class="w-full h-40 object-cover rounded-lg border border-gray-200 bg-gray-50 shadow-sm">
+        {% else %}
+          <div class="w-full h-40 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-xs text-gray-500 uppercase tracking-wide text-center">
+            Passport<br>Photo
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="p-6 border-b border-gray-200 overflow-x-auto">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Attendance Log</h3>
+      <table id="attendance-table" class="w-full text-left border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700 text-xs uppercase tracking-wider border-b border-gray-200">
+            <th class="py-2 px-3 border border-gray-200">Date</th>
+            <th class="py-2 px-3 border border-gray-200 text-center">Status</th>
+            <th class="py-2 px-3 border border-gray-200">Remarks</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-gray-200">
+          {% for row in sheet.attendance_records.all %}
+            <tr>
+              <td class="py-2 px-3 border border-gray-200">{{ row.date }}</td>
+              <td class="py-2 px-3 border border-gray-200 text-center">{{ row.status }}</td>
+              <td class="py-2 px-3 border border-gray-200 text-gray-600">{{ row.remark|default:"N/A" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="3" class="py-3 px-3 border border-gray-200 text-center text-gray-500">No attendance records saved.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="p-6 overflow-x-auto">
+      <h3 class="font-bold text-gray-700 mb-3 text-base">Academic Performance</h3>
+      <table id="result-table" class="w-full text-left border-collapse border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700 text-xs uppercase tracking-wider border-b border-gray-200">
+            <th class="py-3 px-4 border border-gray-200">Subject</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">CA (30%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Exam (70%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Total (100%)</th>
+            <th class="py-3 px-4 border border-gray-200 text-center">Grade</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-gray-200">
+          {% for row in sheet.subjects.all %}
+            <tr>
+              <td class="py-3 px-4 border border-gray-200 font-medium text-gray-800">{{ row.subject }}</td>
+              <td class="py-3 px-4 border border-gray-200 text-center">{{ row.ca_score }}</td>
+              <td class="py-3 px-4 border border-gray-200 text-center">{{ row.exam_score }}</td>
+              <td class="py-3 px-4 border border-gray-200 text-center font-bold">{{ row.total_score }}</td>
+              <td class="py-3 px-4 border border-gray-200 text-center font-bold text-green-600">{{ row.grade }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="py-3 px-3 border border-gray-200 text-center text-gray-500">No subject scores saved.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-6 py-4 bg-gray-50 border-t border-b border-gray-200 flex flex-wrap justify-between text-sm">
+      <div><span class="font-semibold text-gray-600">Total Marks:</span> {{ sheet.total_marks }}</div>
+      <div><span class="font-semibold text-gray-600">Average:</span> {{ sheet.average_score }}%</div>
+      <div><span class="font-semibold text-gray-600">Overall Grade:</span> <span class="text-green-600 font-bold">{{ sheet.overall_grade|default:"-" }}</span></div>
+    </div>
+
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <p class="font-semibold text-gray-700 mb-1">Class Teacher's Remark:</p>
+        <p class="italic text-gray-600">{{ sheet.teacher_remark|default:"No remark provided." }}</p>
+        <div class="mt-4 border-t border-gray-200 pt-3">
+          <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Teacher Signature</p>
+          {% if sheet.teacher_signature %}
+            <img src="{{ sheet.teacher_signature.url }}" alt="Teacher signature" class="h-14 object-contain mt-2 border border-gray-200 rounded bg-white p-1">
+          {% else %}
+            <div class="mt-2 h-14 flex items-center justify-center border border-dashed border-gray-300 rounded bg-white text-[11px] text-gray-500 uppercase tracking-wide">Scanned signature</div>
+          {% endif %}
+          <p class="text-xs font-semibold text-gray-500 mt-2">Signed by: {{ sheet.uploaded_by.get_full_name|default:sheet.uploaded_by.username }}</p>
+        </div>
+      </div>
+      <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <p class="font-semibold text-gray-700 mb-1">Principal's Remark:</p>
+        <p class="italic text-gray-600">{{ sheet.principal_remark|default:"No remark provided." }}</p>
+        <div class="mt-4 border-t border-gray-200 pt-3">
+          <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Principal Signature</p>
+          {% if sheet.principal_signature %}
+            <img src="{{ sheet.principal_signature.url }}" alt="Principal signature" class="h-14 object-contain mt-2 border border-gray-200 rounded bg-white p-1">
+          {% else %}
+            <div class="mt-2 h-14 flex items-center justify-center border border-dashed border-gray-300 rounded bg-white text-[11px] text-gray-500 uppercase tracking-wide">Scanned signature</div>
+          {% endif %}
+          <p class="text-xs text-gray-500 mt-2">Date: {{ sheet.principal_sign_date|default:"-" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 bg-gray-100 text-center space-x-2 print:hidden">
+      <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg shadow">Preview</button>
+      <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg shadow">Download</button>
+      {% if can_manage_manual_results %}
+        <a href="{% url 'exams:edit_result_sheet' sheet_id=sheet.id %}" class="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-6 rounded-lg shadow inline-block">Edit</a>
+      {% endif %}
+      <a href="{% url 'exams:check_results' %}" class="bg-slate-700 hover:bg-slate-800 text-white font-medium py-2 px-6 rounded-lg shadow inline-block">Back</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function exportToExcel() {
+    const workbook = XLSX.utils.book_new();
+    const attendanceTable = document.getElementById('attendance-table');
+    const resultTable = document.getElementById('result-table');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.table_to_sheet(attendanceTable), 'Attendance_Log');
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.table_to_sheet(resultTable), 'Academic_Performance');
+    XLSX.writeFile(workbook, 'Result_Sheet_{{ sheet.student.username }}.xlsx');
+  }
+</script>
+{% endblock %}
