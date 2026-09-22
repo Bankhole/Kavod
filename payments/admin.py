@@ -32,7 +32,7 @@ class InvoiceAdmin(admin.ModelAdmin):
             'fields': ('billing_name', 'billing_email', 'billing_phone', 'billing_address')
         }),
         ('Charges', {
-            'fields': ('itemized_charges', 'tuition_fee', 'late_registration_fee', 'other_charges', 'total_amount', 'notes')
+            'fields': ('itemized_charges', 'tuition_fee', 'late_registration_fee', 'other_charges', 'overdue_fee', 'total_amount', 'notes')
         }),
     )
 

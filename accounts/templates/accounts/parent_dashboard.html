@@ -11,7 +11,7 @@
     <div class="card shadow-sm h-100">
       <div class="card-body">
         <h5 class="card-title">Results</h5>
-        <p class="text-muted">Check your child's published exam results.</p>
+        <p class="text-muted">Track your childrens academic performance and check results.</p>
         <a class="btn btn-outline-primary btn-sm" href="{% url 'exams:check_results' %}">Check Results</a>
       </div>
     </div>
@@ -21,7 +21,7 @@
     <div class="card shadow-sm h-100">
       <div class="card-body">
         <h5 class="card-title">Payments</h5>
-        <p class="text-muted">View invoices and make school fee payments.</p>
+        <p class="text-muted">View invoices, make school fee payments and download invoices and receipts.</p>
         <a class="btn btn-outline-primary btn-sm" href="{% url 'payments:dashboard' %}">Go to Payments</a>
       </div>
     </div>
@@ -47,4 +47,26 @@
     </div>
   </div>
 </div>
+
+ <div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Learning</h5>
+        <p class="text-muted">Live sessions.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'learning:course_list' %}">Go to Courses</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Attendance</h5>
+        <p class="text-muted">Track your child's attendance.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'attendance:parent_attendance' %}">View Attendance</a>
+      </div>
+    </div>
+  </div>
+</div> 
 {% endblock %}

@@ -13,9 +13,13 @@
         <h5 class="card-title">Academic Tools</h5>
         <ul class="list-unstyled mb-0">
           <li><a href="{% url 'learning:course_list' %}">Learning</a></li>
+          {% if user_group != 'Parent' %}
           <li><a href="{% url 'timetable:classroom_list' %}">Timetable</a></li>
           <li><a href="{% url 'assignment:list' %}">Assignments</a></li>
           <li><a href="{% url 'attendance:dashboard' %}">Attendance portal</a></li>
+          {% else %}
+          <li><a href="{% url 'attendance:parent_attendance' %}">My Children's Attendance</a></li>
+          {% endif %}
           <li><a href="{% url 'payments:dashboard' %}">Payments portal</a></li>
         </ul>
       </div>

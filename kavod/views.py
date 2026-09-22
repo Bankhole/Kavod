@@ -1,10 +1,13 @@
 ﻿from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from announcements.models import Announcement
 
 
 def home(request):
+    if not request.user.is_authenticated:
+        return redirect('accounts:register')
+
     announcements = Announcement.objects.filter(is_published=True).order_by('-is_important', '-created_at')[:5]
     return render(request, 'home.html', {'announcements': announcements})
 

@@ -52,8 +52,8 @@
       <div class="card shadow-sm h-100 border-warning">
         <div class="card-body">
           <h5 class="card-title">Invoices</h5>
-          <p class="text-muted">Create and manage student invoices.</p>
-          <a class="btn btn-outline-warning btn-sm" href="{% url 'payments:manual_invoice_entry' %}">Add Invoice</a>
+          <p class="text-muted">Create and manage invoices for an entire class.</p>
+          <a class="btn btn-outline-warning btn-sm" href="{% url 'payments:bulk_invoice_entry' %}">Add Invoices by Class</a>
         </div>
       </div>
     </div>
@@ -65,6 +65,42 @@
         <h5 class="card-title">Announcements</h5>
         <p class="text-muted">Read the latest school-wide announcements.</p>
         <a class="btn btn-outline-primary btn-sm" href="{% url 'announcements:list' %}">View Announcements</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Birthday Greetings</h5>
+        <p class="text-muted">Celebrate the birthdays of current students and staff.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'birthdaygreetings:today_birthdays' %}">View Birthdays</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Exams</h5>
+        <p class="text-muted">Set exams and tests, schedules and manage exam-related activities.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'exams:quiz_list' %}">View Exams</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-4">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">Learning</h5>
+        <p class="text-muted">Live classes, recorded lessons, video tutorials, and more.</p>
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'learning:course_list' %}">Go to Courses</a>
       </div>
     </div>
   </div>

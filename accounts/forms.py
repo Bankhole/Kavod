@@ -33,9 +33,19 @@ class CustomUserCreationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields.pop('password1', None)
+        self.fields.pop('password2', None)
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
             field.widget.attrs['placeholder'] = field.label
+
+    def save(self, commit=True):
+        user = forms.ModelForm.save(self, commit=False)
+        user.set_unusable_password()
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
 
     def clean_role(self):
         role = self.cleaned_data['role']
@@ -43,6 +53,16 @@ class CustomUserCreationForm(UserCreationForm):
         if role not in allowed:
             role = User.Roles.STUDENT
         return role
+
+class AdminUserCreationForm(UserCreationForm):
+    """Used only by the Django admin's "Add user" form, which requires password1/password2."""
+
+    role = forms.ChoiceField(choices=User.Roles.choices)
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ('username', 'email', 'role')
+
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:

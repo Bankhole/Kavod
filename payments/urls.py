@@ -10,6 +10,7 @@ urlpatterns = [
     path('verify/', views.verify_payment, name='verify_payment'),
     path('history/', views.payment_history, name='history'),
     path('invoices/add/', views.manual_invoice_entry, name='manual_invoice_entry'),
+    path('invoices/bulk-add/', views.bulk_invoice_entry, name='bulk_invoice_entry'),
     path('invoices/<str:invoice_number>/edit/', views.manual_invoice_entry, name='edit_invoice'),
     path('invoice-pay/', views.student_invoice_payment, name='invoice_payment'),
     path('invoice/<str:invoice_number>/', views.invoice_detail, name='invoice_detail'),

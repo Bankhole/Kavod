@@ -160,7 +160,9 @@ FLUTTERWAVE_SECRET_KEY = os.environ.get('FLUTTERWAVE_SECRET_KEY', '')
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', '')
 PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET', '')
 
-LOGIN_URL = '/'
+PAYMENT_OVERDUE_SURCHARGE_PERCENT = os.environ.get('PAYMENT_OVERDUE_SURCHARGE_PERCENT', '5.00')
+
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = 'accounts:dashboard_redirect'
 LOGOUT_REDIRECT_URL = '/'
 FORM_RENDERER = 'django.forms.renderers.TemplatesSetting'

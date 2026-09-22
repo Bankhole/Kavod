@@ -21,8 +21,8 @@ class SubmissionInline(admin.TabularInline):
 
 @admin.register(Assignment)
 class AssignmentAdmin(admin.ModelAdmin):
-    list_display = ('title', 'due_date', 'created_at', 'total_submissions')
-    list_filter = ('due_date', 'created_at')
+    list_display = ('title', 'student_class', 'due_date', 'created_at', 'total_submissions')
+    list_filter = ('student_class', 'due_date', 'created_at')
     search_fields = ('title', 'description')
     ordering = ('-due_date',)
     inlines = [SubmissionInline]

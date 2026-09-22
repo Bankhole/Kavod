@@ -164,24 +164,6 @@
             box-shadow: 0 12px 24px rgba(25, 135, 84, 0.4);
         }
 
-        /* Password Indicator List */
-        .password-check-list {
-            font-size: 0.8rem;
-            list-style: none;
-            padding-left: 0;
-            margin-top: 0.5rem;
-        }
-
-        .password-check-list li {
-            color: #a0aec0;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .password-check-list li.valid {
-            color: #198754;
-        }
     </style>
 </head>
 <body>
@@ -198,21 +180,20 @@
                 </div>
 
                 <div class="card-body p-4 p-md-5">
-                    <form method="post" action="#" id="registrationForm" novalidate>
+                    <form method="post" action="" id="registrationForm" novalidate>
+                        {% csrf_token %}
 
                         <!-- Role Selector Section -->
                         <div class="text-center mb-4">
                             <label class="form-label fw-bold mb-3 d-block text-secondary">Choose Account Type</label>
                             <div class="btn-group role-btn-group w-100" role="group" aria-label="Select Role">
-                                <input type="radio" class="btn-check" name="role" id="role_student" value="student" checked autocomplete="off">
+                                <input type="radio" class="btn-check" name="role" id="role_student" value="STUDENT" checked autocomplete="off">
                                 <label class="btn me-2" for="role_student"><i class="fas fa-user-graduate me-2"></i>Student</label>
 
-                                <input type="radio" class="btn-check" name="role" id="role_parent" value="parent" autocomplete="off">
+                                <input type="radio" class="btn-check" name="role" id="role_parent" value="PARENT" autocomplete="off">
                                 <label class="btn me-2" for="role_parent"><i class="fas fa-user-friends me-2"></i>Parent / Guardian</label>
-
-                                <input type="radio" class="btn-check" name="role" id="role_staff" value="staff" autocomplete="off">
-                                <label class="btn" for="role_staff"><i class="fas fa-chalkboard-teacher me-2"></i>Teacher / Staff</label>
                             </div>
+                            <p class="text-muted small mt-2 mb-0">Teacher/Staff accounts are created by an administrator in the admin panel.</p>
                         </div>
 
                         <!-- SECTION 1: Account Credentials -->
@@ -301,6 +282,12 @@
                                         <span class="input-group-text"><i class="fas fa-layer-group"></i></span>
                                         <select name="grade" id="id_grade" class="form-select">
                                             <option value="" disabled selected>Select Grade...</option>
+                                            <option value="grade_1">Grade 1</option>
+                                            <option value="grade_2">Grade 2</option>
+                                            <option value="grade_3">Grade 3</option>
+                                            <option value="grade_4">Grade 4</option>
+                                            <option value="grade_5">Grade 5</option>
+                                            <option value="grade_6">Grade 6</option>
                                             <option value="grade_7">Grade 7 / JSS1</option>
                                             <option value="grade_8">Grade 8 / JSS2</option>
                                             <option value="grade_9">Grade 9 / JSS3</option>
@@ -367,84 +354,6 @@
                             </div>
                         </div>
 
-                        <!-- Dynamic Teacher / Staff Fields -->
-                        <div id="staff_fields" class="form-section dynamic-role-section d-none">
-                            <h5 class="form-section-title mb-3"><i class="fas fa-chalkboard-teacher"></i> Staff Designation & Teaching Details</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="id_staff_role" class="form-label fw-bold">Staff Role / Position</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                        <select name="staff_role" class="form-select">
-                                            <option value="" disabled selected>Select Designation...</option>
-                                            <option value="subject_teacher">Subject Teacher</option>
-                                            <option value="class_teacher">Class Teacher</option>
-                                            <option value="head_teacher">Head Teacher / Principal</option>
-                                            <option value="admin">Administrative Staff</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="id_primary_subject" class="form-label fw-bold">Primary Subject Specialization</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-book"></i></span>
-                                        <select name="primary_subject" class="form-select">
-                                            <option value="" disabled selected>Select Subject...</option>
-                                            <option value="mathematics">Mathematics</option>
-                                            <option value="english">English Language</option>
-                                            <option value="physics">Physics</option>
-                                            <option value="chemistry">Chemistry</option>
-                                            <option value="biology">Biology</option>
-                                            <option value="ict">Computer Science / ICT</option>
-                                            <option value="na">N/A - Non-Teaching</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="id_staff_id" class="form-label fw-bold">Staff ID Number</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
-                                        <input type="text" name="staff_id" class="form-control" placeholder="e.g. KS-STF-2026-01">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="id_secondary_subject" class="form-label fw-bold">Additional Subjects (Optional)</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-journal-whills"></i></span>
-                                        <input type="text" name="secondary_subject" class="form-control" placeholder="e.g. Civic Education">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SECTION 4: Security -->
-                        <div class="form-section">
-                            <h5 class="form-section-title mb-3"><i class="fas fa-lock"></i> Security & Password</h5>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="id_password1" class="form-label fw-bold">Password</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
-                                        <input type="password" name="password1" id="id_password1" class="form-control" placeholder="Create password" required>
-                                    </div>
-                                    <ul class="password-check-list mt-2">
-                                        <li id="check-length"><i class="fas fa-circle text-muted"></i> At least 8 characters</li>
-                                        <li id="check-num"><i class="fas fa-circle text-muted"></i> Contains a number or special character</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="id_password2" class="form-label fw-bold">Confirm Password</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="fas fa-check-double"></i></span>
-                                        <input type="password" name="password2" id="id_password2" class="form-control" placeholder="Repeat password" required>
-                                    </div>
-                                    <ul class="password-check-list mt-2">
-                                        <li id="check-match"><i class="fas fa-circle text-muted"></i> Passwords match</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Submit Button -->
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-success btn-register text-white fw-bold">
@@ -474,68 +383,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const roleRadios = document.querySelectorAll('input[name="role"]');
     const studentFields = document.getElementById('student_fields');
     const parentFields = document.getElementById('parent_fields');
-    const staffFields = document.getElementById('staff_fields');
 
     roleRadios.forEach(radio => {
         radio.addEventListener('change', function () {
             // Hide all dynamic sections
             studentFields.classList.add('d-none');
             parentFields.classList.add('d-none');
-            staffFields.classList.add('d-none');
 
             // Display active section
-            if (this.value === 'student') {
+            if (this.value === 'STUDENT') {
                 studentFields.classList.remove('d-none');
-            } else if (this.value === 'parent') {
+            } else if (this.value === 'PARENT') {
                 parentFields.classList.remove('d-none');
-            } else if (this.value === 'staff') {
-                staffFields.classList.remove('d-none');
             }
         });
     });
 
-    // Real-Time Password Validation Logic
-    const passwordInput = document.getElementById('id_password1');
-    const confirmPasswordInput = document.getElementById('id_password2');
-
-    const checkLength = document.getElementById('check-length');
-    const checkNum = document.getElementById('check-num');
-    const checkMatch = document.getElementById('check-match');
-
-    function validatePassword() {
-        const pass = passwordInput.value;
-        const confirmPass = confirmPasswordInput.value;
-
-        // Check length
-        if (pass.length >= 8) {
-            checkLength.classList.add('valid');
-            checkLength.querySelector('i').className = 'fas fa-check-circle text-success';
-        } else {
-            checkLength.classList.remove('valid');
-            checkLength.querySelector('i').className = 'fas fa-circle text-muted';
-        }
-
-        // Check number or special char
-        if (/[0-9!@#$%^&*]/.test(pass)) {
-            checkNum.classList.add('valid');
-            checkNum.querySelector('i').className = 'fas fa-check-circle text-success';
-        } else {
-            checkNum.classList.remove('valid');
-            checkNum.querySelector('i').className = 'fas fa-circle text-muted';
-        }
-
-        // Check match
-        if (pass && confirmPass && pass === confirmPass) {
-            checkMatch.classList.add('valid');
-            checkMatch.querySelector('i').className = 'fas fa-check-circle text-success';
-        } else {
-            checkMatch.classList.remove('valid');
-            checkMatch.querySelector('i').className = 'fas fa-circle text-muted';
-        }
-    }
-
-    passwordInput.addEventListener('input', validatePassword);
-    confirmPasswordInput.addEventListener('input', validatePassword);
 });
 </script>
 

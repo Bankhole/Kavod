@@ -39,6 +39,22 @@ def _generate_unique_access_code():
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    student_class = models.ForeignKey(
+        'attendance.StudentClass',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='student_profiles',
+    )
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='children_profiles',
+        limit_choices_to={'role': 'PARENT'},
+        help_text="This student's parent/guardian account (grants them access to check this student's results).",
+    )
     bio = models.TextField(max_length=500, blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     student_id_or_staff_code = models.CharField(max_length=20, blank=True, null=True)
@@ -78,12 +94,6 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    profile, _ = Profile.objects.get_or_create(user=instance)
-    profile.save()
-
-
-@receiver(post_save, sender=User)
 def assign_default_group(sender, instance, created, **kwargs):
     """Seed a new user's Group membership from their `role` so admins immediately see it in /admin/.
 
@@ -95,7 +105,13 @@ def assign_default_group(sender, instance, created, **kwargs):
     from django.contrib.auth.models import Group
     from .permissions import ROLE_TO_GROUP
 
-    group_name = ROLE_TO_GROUP.get(str(instance.role).upper())
+    role = str(instance.role).upper()
+    group_name = ROLE_TO_GROUP.get(role)
     if group_name:
         group, _ = Group.objects.get_or_create(name=group_name)
         instance.groups.add(group)
+
+    # Teachers/Admins need is_staff to log into /admin/ and use their Group permissions there.
+    if role in ('TEACHER', 'ADMIN') and not instance.is_staff:
+        instance.is_staff = True
+        instance.save(update_fields=['is_staff'])

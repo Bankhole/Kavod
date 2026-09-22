@@ -68,6 +68,7 @@ class Invoice(models.Model):
     tuition_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     late_registration_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     other_charges = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    overdue_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
     notes = models.TextField(blank=True)
@@ -142,11 +143,15 @@ class Invoice(models.Model):
         return total
 
     def calculate_total(self):
-        subtotal = self.subtotal
         try:
-            total = subtotal + Decimal(str(self.late_registration_fee)) + Decimal(str(self.other_charges))
+            total = (
+                Decimal(str(self.tuition_fee))
+                + Decimal(str(self.late_registration_fee))
+                + Decimal(str(self.other_charges))
+                + Decimal(str(self.overdue_fee))
+            )
         except Exception:
-            total = subtotal
+            total = Decimal('0.00')
         return total
 
     @property
@@ -183,7 +188,7 @@ class Invoice(models.Model):
 
     @property
     def is_overdue(self):
-        return self.due_date < timezone.localdate() and self.status != self.Status.PAID
+        return self.due_date <= timezone.localdate() and self.status != self.Status.PAID
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
@@ -202,7 +207,22 @@ class Invoice(models.Model):
                 self.billing_address = ', '.join(filter(None, address_parts))
             else:
                 self.billing_address = ''
-        self.total_amount = self.calculate_total()
-        if self.due_date and self.due_date < timezone.localdate() and self.status != self.Status.PAID:
+        if self.due_date and self.due_date <= timezone.localdate() and self.status != self.Status.PAID:
+            if not self.overdue_fee:
+                surcharge_rate = Decimal(str(getattr(settings, 'PAYMENT_OVERDUE_SURCHARGE_PERCENT', '5.00')))
+                base_amount = (
+                    Decimal(str(self.tuition_fee))
+                    + Decimal(str(self.late_registration_fee))
+                    + Decimal(str(self.other_charges))
+                )
+                self.overdue_fee = (base_amount * surcharge_rate / Decimal('100')).quantize(Decimal('0.01'))
+                charges = list(self.itemized_charges or [])
+                charges.append({
+                    'title': 'Overdue Surcharge',
+                    'description': f'{surcharge_rate}% charge applied after the due date',
+                    'amount': str(self.overdue_fee),
+                })
+                self.itemized_charges = charges
             self.status = self.Status.OVERDUE
+        self.total_amount = self.calculate_total()
         super().save(*args, **kwargs)

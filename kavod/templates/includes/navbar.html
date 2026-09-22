@@ -15,7 +15,6 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">Home</a></li>
-          <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.view_name == 'accounts:dashboard_redirect' %}active{% endif %}" href="{% url 'accounts:dashboard_redirect' %}">My Dashboard</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'admissions' %}active{% endif %}" href="{% url 'admissions:admission_apply' %}">Admissions</a></li>
           <li class="nav-item dropdown">
@@ -30,19 +29,20 @@
                 <li><a class="dropdown-item {% if request.resolver_match and request.resolver_match.namespace == 'assignment' %}active{% endif %}" href="{% url 'assignment:list' %}">Assignments</a></li>
                 <li><a class="dropdown-item" href="{% url 'attendance:dashboard' %}">Attendance</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{% url 'payments:dashboard' %}">Payments Dashboard</a></li>
                 <li><a class="dropdown-item" href="{% url 'payments:history' %}">Payment History</a></li>
                 <li><a class="dropdown-item" href="{% url 'payments:invoice_payment' %}">Invoice Payment</a></li>
               {% endif %}
               {% if can_manage_school_operations %}
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{% url 'payments:manual_invoice_entry' %}">Add Invoice</a></li>
+                <li><a class="dropdown-item" href="{% url 'payments:bulk_invoice_entry' %}">Add Invoices by Class</a></li>
               {% endif %}
             </ul>
           </li>
           <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
 
+          {% if user_group != 'Parent' %}
           <li class="nav-item"><a class="nav-link" href="{% url 'exams:quiz_list' %}">Exams</a></li>
+          {% endif %}
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle {% if request.resolver_match and request.resolver_match.namespace == 'birthdaygreetings' %}active{% endif %}" href="#" id="portalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -58,7 +58,6 @@
                 <li><a class="dropdown-item" href="{% url 'exams:manual_result_upload' %}">Upload Results</a></li>
               {% endif %}
               {% if request.user.is_staff %}
-                <li><a class="dropdown-item" href="{% url 'admin:index' %}">Admin Dashboard</a></li>
               {% endif %}
             </ul>
           </li>

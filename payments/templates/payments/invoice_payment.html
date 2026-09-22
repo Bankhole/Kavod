@@ -87,6 +87,14 @@
               </tr>
             {% endif %}
 
+            {% if invoice.overdue_fee %}
+              <tr>
+                <td>Overdue Surcharge</td>
+                <td>Charge applied after the due date</td>
+                <td class="text-end">₦{{ invoice.overdue_fee }}</td>
+              </tr>
+            {% endif %}
+
             {% if invoice.other_charges %}
               <tr>
                 <td>Other Charges</td>

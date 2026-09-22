@@ -18,10 +18,10 @@
         <div class="card-body p-4">
           <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
             <div>
-              <h4 class="mb-1">Quick Invoice Entry</h4>
-              <p class="text-muted mb-0">Create or update a per-student invoice in seconds.</p>
+              <h4 class="mb-1">Class Invoice Entry</h4>
+              <p class="text-muted mb-0">Create invoices for every student in a class at once.</p>
             </div>
-            <a href="{% url 'payments:manual_invoice_entry' %}" class="btn btn-success btn-lg rounded-pill px-4 fw-bold">Add Invoice</a>
+            <a href="{% url 'payments:bulk_invoice_entry' %}" class="btn btn-success btn-lg rounded-pill px-4 fw-bold">Add Invoices by Class</a>
           </div>
         </div>
       </div>

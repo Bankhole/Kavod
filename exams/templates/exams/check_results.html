@@ -13,7 +13,10 @@
         {% for sheet in sheets %}
           <a href="{% url 'exams:result_sheet_detail' sheet_id=sheet.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
             <div>
-              <h6 class="mb-1">{{ sheet.term }} - {{ sheet.session_name }}</h6>
+              <h6 class="mb-1">
+                {{ sheet.term }} - {{ sheet.session_name }}
+                {% if has_children %}<span class="text-muted small">({{ sheet.student.get_full_name|default:sheet.student.username }})</span>{% endif %}
+              </h6>
               <small class="text-muted">Class: {{ sheet.class_name }} | Uploaded: {{ sheet.created_at|date:"M d, Y" }}</small>
             </div>
             <span class="badge bg-success">Grade {{ sheet.overall_grade|default:"-" }}</span>

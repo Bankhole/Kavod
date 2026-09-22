@@ -362,8 +362,11 @@ def manual_result_upload(request, sheet_id=None):
 
 @login_required
 def check_results(request):
-    sheets = StudentResultSheet.objects.filter(student=request.user).prefetch_related('subjects', 'attendance_records')
-    return render(request, 'exams/check_results.html', {'sheets': sheets})
+    # Parents see their own children's sheets too, grouped by student for clarity.
+    child_ids = list(request.user.children_profiles.values_list('user_id', flat=True))
+    student_ids = [request.user.id] + child_ids
+    sheets = StudentResultSheet.objects.filter(student_id__in=student_ids).select_related('student').prefetch_related('subjects', 'attendance_records')
+    return render(request, 'exams/check_results.html', {'sheets': sheets, 'has_children': bool(child_ids)})
 
 
 @login_required
@@ -373,7 +376,9 @@ def result_sheet_detail(request, sheet_id):
         id=sheet_id,
     )
 
-    if sheet.student_id != request.user.id and not _can_manage_manual_results(request.user):
+    is_own_sheet = sheet.student_id == request.user.id
+    is_own_childs_sheet = request.user.children_profiles.filter(user_id=sheet.student_id).exists()
+    if not is_own_sheet and not is_own_childs_sheet and not _can_manage_manual_results(request.user):
         return HttpResponseForbidden('You are not allowed to view this result sheet.')
 
     total_days = sheet.attendance_records.count()

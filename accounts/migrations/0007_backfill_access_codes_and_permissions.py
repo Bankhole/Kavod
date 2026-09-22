@@ -12,6 +12,15 @@ def backfill_access_codes_and_assign_permissions(apps, schema_editor):
     Group = apps.get_model('auth', 'Group')
     Permission = apps.get_model('auth', 'Permission')
 
+    # On a brand-new database, Django's `post_migrate` signal (which creates
+    # Permission rows for each model's Meta.permissions) only fires AFTER all
+    # migrations finish, so the custom permissions below don't exist yet at
+    # this point. Force-create them now so the lookups/assignments actually
+    # take effect instead of silently becoming a no-op.
+    from django.apps import apps as global_apps
+    from django.contrib.auth.management import create_permissions
+    create_permissions(global_apps.get_app_config('accounts'), verbosity=0)
+
     existing_codes = set(Profile.objects.exclude(access_code='').values_list('access_code', flat=True))
     for profile in Profile.objects.filter(access_code=''):
         code = generate_code()

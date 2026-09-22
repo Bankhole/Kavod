@@ -4,11 +4,13 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 
 from accounts.permissions import can_manage_school_operations
+from .forms import BulkInvoiceForm
 from .models import Invoice, PaymentCategory, Transaction
 from .services import GatewayServiceFactory
 from .utils import generate_invoice_pdf, generate_receipt_pdf
@@ -95,6 +97,7 @@ def verify_payment(request):
         transaction.status = Transaction.Status.SUCCESSFUL
         transaction.gateway_response = verification['data']
         transaction.save()
+        Invoice.objects.filter(transaction=transaction).update(status=Invoice.Status.PAID)
         messages.success(request, f'Payment for {transaction.category.name} was successful.')
     else:
         transaction.status = Transaction.Status.FAILED
@@ -207,6 +210,61 @@ def manual_invoice_entry(request, invoice_number=None):
         return redirect('payments:invoice_detail', invoice_number=invoice.invoice_number)
 
     return render(request, 'payments/manual_invoice_entry.html', {'students': students, 'initial': initial, 'invoice': invoice})
+
+
+@login_required
+@user_passes_test(_can_manage_invoices)
+@transaction.atomic
+def bulk_invoice_entry(request):
+    form = BulkInvoiceForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        student_class = form.cleaned_data['student_class']
+        students = get_user_model().objects.filter(
+            role='STUDENT',
+        ).filter(
+            Q(profile__student_class__name=student_class)
+            | Q(profile__student_class__name__startswith=f'{student_class}-')
+        ).order_by('first_name', 'last_name', 'username')
+        created_count = 0
+        skipped_count = 0
+        data = form.cleaned_data
+        itemized_charges = [
+            {'title': 'Tuition Fee', 'description': 'Academic school tuition', 'amount': str(data['tuition_fee'])},
+            {'title': 'Late Registration', 'description': 'Penalty for late registration', 'amount': str(data['late_registration_fee'])},
+            {'title': 'Other Charges', 'description': data['notes'] or 'Other school charges', 'amount': str(data['other_charges'])},
+        ]
+
+        for student in students:
+            if Invoice.objects.filter(
+                student=student,
+                academic_session=data['academic_session'],
+                term=data['term'],
+            ).exists():
+                skipped_count += 1
+                continue
+            invoice = Invoice.objects.create(
+                student=student,
+                academic_session=data['academic_session'],
+                term=data['term'],
+                due_date=data['due_date'],
+                tuition_fee=data['tuition_fee'],
+                late_registration_fee=data['late_registration_fee'],
+                other_charges=data['other_charges'],
+                notes=data['notes'],
+                status=Invoice.Status.SENT,
+                itemized_charges=itemized_charges,
+            )
+            invoice.save(update_fields=['itemized_charges'])
+            created_count += 1
+
+        messages.success(
+            request,
+            f'{created_count} invoice(s) created for {student_class}. '
+            f'{skipped_count} existing invoice(s) skipped.',
+        )
+        return redirect('payments:bulk_invoice_entry')
+
+    return render(request, 'payments/bulk_invoice_entry.html', {'form': form})
 
 
 @login_required
