@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase
@@ -25,3 +26,8 @@ class ExamsTemplateTests(TestCase):
         )
 
         self.assertIn("Sample Quiz", html)
+=======
+from django.test import TestCase
+
+# Create your tests here.
+>>>>>>> a79162f0f57a88911ff8216bfa0a9b5b9f1aa1a5

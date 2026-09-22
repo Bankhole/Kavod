@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
@@ -30,3 +31,22 @@ def academics(request):
 @login_required
 def contact(request):
     return render(request, 'contact.html')
+=======
+
+from django.shortcuts import render
+
+def home(request):
+    return render(request, 'home.html')
+
+def about(request):
+    return render(request, 'about.html')
+
+def admissions(request):
+    return render(request, 'admissions.html')
+
+def academics(request):
+    return render(request, 'academics.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+>>>>>>> a79162f0f57a88911ff8216bfa0a9b5b9f1aa1a5
